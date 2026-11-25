@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier IA : Vision</title>
+<meta name="description" content="Choisis ta version de l'atelier et ouvre le notebook dans Google Colab.">
+<meta name="theme-color" content="#080b12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b12;
+    --bg-2: #0d121c;
+    --card: #0f1420;
+    --card-hover: #131a29;
+    --line: #1e2636;
+    --line-strong: #2b3549;
+    --fg: #f3f5f9;
+    --muted: #8a94a8;
+    --dim: #5d6679;
+    --gold: #f5b82e;
+    --gold-soft: rgba(245, 184, 46, .12);
+    --blue: #7cc4ff;
+    --blue-soft: rgba(124, 196, 255, .1);
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100vh; min-height: 100dvh;
+    background: var(--bg); color: var(--fg);
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    position: relative; overflow-x: hidden;
+  }
+  /* background: faint dot grid + warm glow, like the slides */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 30%, transparent 80%);
+  }
+  body::after {
+    content: ""; position: fixed; z-index: 0; pointer-events: none;
+    width: 640px; height: 640px; left: 50%; top: -320px; transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(245,184,46,.13), transparent 65%);
+  }
+
+  main {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 880px; margin: 0 auto;
+    padding: 40px 16px 48px;
+  }
+
+  /* ---------- header ---------- */
+  .tete { display: flex; align-items: center; gap: 20px; margin-bottom: 36px; }
+  .trois { width: 76px; height: 87px; flex: none; }
+  .trois circle { fill: #182031; }
+  .trois circle.on { fill: var(--gold); animation: allume .5s ease-out both; }
+  @keyframes allume { from { fill: #182031; } to { fill: var(--gold); } }
+  .surtitre {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--blue); margin: 0 0 8px;
+  }
+  h1 { font-size: clamp(2rem, 7vw, 2.9rem); line-height: 1.02; margin: 0; font-weight: 700; letter-spacing: -.02em; }
+  h1 span { color: var(--gold); }
+  .intro { color: var(--muted); font-size: 1.05rem; margin: 0 0 22px; }
+
+  /* ---------- choices ---------- */
+  .choix-grille { display: grid; gap: 14px; }
+  @media (min-width: 720px) { .choix-grille { grid-template-columns: 1fr 1fr; } }
+
+  a.choix {
+    position: relative; display: flex; flex-direction: column; gap: 14px;
+    text-decoration: none; color: var(--fg);
+    background: linear-gradient(180deg, var(--card), var(--bg-2));
+    border: 1px solid var(--line); border-radius: 18px;
+    padding: 22px 20px 20px; overflow: hidden;
+    transition: border-color .2s, transform .2s, background .2s;
+  }
+  a.choix::before {               /* top accent line */
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: var(--accent); opacity: .7;
+  }
+  a.choix.decouverte { --accent: var(--blue); --accent-soft: var(--blue-soft); }
+  a.choix.codeur     { --accent: var(--gold); --accent-soft: var(--gold-soft); }
+  a.choix:hover { border-color: var(--accent); background: linear-gradient(180deg, var(--card-hover), var(--bg-2)); transform: translateY(-2px); }
+  a.choix:active { transform: scale(.985); }
+  a.choix:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .ligne-haut { display: flex; align-items: center; justify-content: space-between; }
+  .numero { font-family: var(--mono); font-size: .8rem; color: var(--dim); }
+  .icone {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent);
+    font-family: var(--mono); font-size: 1rem; font-weight: 500;
+  }
+  .icone svg { width: 22px; height: 22px; }
+  .titre { font-size: 1.55rem; font-weight: 700; letter-spacing: -.01em; margin: 0; }
+  .desc { color: var(--muted); font-size: .98rem; line-height: 1.45; margin: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .tags li {
+    font-size: .78rem; color: var(--fg); padding: 5px 10px; border-radius: 999px;
+    border: 1px solid var(--line-strong); background: rgba(255,255,255,.02);
+  }
+  .ouvrir {
+    margin-top: auto; display: flex; align-items: center; justify-content: space-between;
+    padding-top: 14px; border-top: 1px dashed var(--line-strong);
+    font-weight: 600; color: var(--accent); font-size: .98rem;
+  }
+  .ouvrir .fleche { transition: transform .2s; font-size: 1.3rem; line-height: 1; }
+  a.choix:hover .fleche { transform: translateX(4px); }
+
+  /* ---------- infos (warning + save) ---------- */
+  .infos { margin-top: 30px; }
+  .infos-titre {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); margin: 0 0 12px;
+  }
+  .infos-grille { display: grid; gap: 14px; }
+  @media (min-width: 720px) { .infos-grille { grid-template-columns: 1fr 1fr; } }
+  .info {
+    border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+    background: rgba(255,255,255,.015); display: flex; flex-direction: column; gap: 12px;
+  }
+  .info-tete { display: flex; align-items: center; gap: 10px; }
+  .pastille {
+    width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none;
+    background: var(--gold-soft); color: var(--gold);
+  }
+  .pastille svg { width: 18px; height: 18px; }
+  .info h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .info p { margin: 0; color: var(--muted); font-size: .93rem; line-height: 1.5; }
+  .info p b { color: var(--fg); font-weight: 500; }
+
+  /* mock of the Colab warning */
+  .maquette {
+    border-radius: 12px; background: #1b1f27; border: 1px solid #2c3240; padding: 12px 14px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .maquette .m-titre { font-size: .82rem; font-weight: 600; color: #e8eaed; margin-bottom: 4px; }
+  .maquette .m-texte { font-size: .74rem; color: #9aa0a6; line-height: 1.4; margin-bottom: 10px; }
+  .maquette .m-boutons { display: flex; justify-content: flex-end; gap: 6px; }
+  .maquette .m-btn { font-size: .74rem; padding: 6px 10px; border-radius: 6px; color: #8ab4f8; }
+  .maquette .m-btn.actif { background: #8ab4f8; color: #1b1f27; font-weight: 600; box-shadow: 0 0 0 3px rgba(245,184,46,.55); }
+
+  /* menu path */
+  .chemin { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .chemin span {
+    font-size: .8rem; padding: 6px 10px; border-radius: 8px;
+    background: var(--bg-2); border: 1px solid var(--line-strong); color: var(--fg);
+  }
+  .chemin span.cible { border-color: var(--gold); color: var(--gold); }
+  .chemin i { font-style: normal; color: var(--dim); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .trois circle.on { animation: none; }
+    a.choix, .ouvrir .fleche { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="tete">
+    <svg class="trois" viewBox="0 0 98 112" aria-hidden="true">
+      <!-- pixel "3", same idea as the title slide; dots light up one row after another -->
+      <g id="pixels"></g>
+    </svg>
+    <div>
+      <p class="surtitre">Vision par ordinateur</p>
+      <h1>Atelier IA <span>:</span> Vision</h1>
+    </div>
+  </header>
+
+  <p class="intro">Choisis ta version. Tu peux changer à tout moment.</p>
+
+  <div class="choix-grille">
+    <!-- LIEN 1 : version découverte -->
+    <a class="choix decouverte" href="https://colab.research.google.com/drive/1xm_LwugN2IJ0NrOI-dMpjHZPwY2VwqLF?usp=sharing">
+      <div class="ligne-haut">
+        <span class="icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        </span>
+        <span class="numero">01</span>
+      </div>
+      <h2 class="titre">Version découverte</h2>
+      <p class="desc">Fais tourner de vraies IA sur tes photos. Tu changes des réglages, tu observes.</p>
+      <ul class="tags"><li>Aucun code</li><li>Curseurs et menus</li><li>Ta propre appli</li></ul>
+      <span class="ouvrir">Ouvrir dans Colab <span class="fleche">&rarr;</span></span>
+    </a>
+
+    <!-- LIEN 2 : version codeur -->
+    <a class="choix codeur" href="https://colab.research.google.com/drive/1H8Yt3QlQ5cFXYCVWNZYIWMnwA-Gm9gQY?usp=sharing">
+      <div class="ligne-haut">
+        <span class="icone" aria-hidden="true">&lt;/&gt;</span>
+        <span class="numero">02</span>
+      </div>
+      <h2 class="titre">Version codeur</h2>
+      <p class="desc">Écris le code toi-même : de la lecture des résultats de YOLO jusqu'à ton propre réseau de neurones.</p>
+      <ul class="tags"><li>Python</li><li>Exercices et tests</li><li>Du facile au costaud</li></ul>
+      <span class="ouvrir">Ouvrir dans Colab <span class="fleche">&rarr;</span></span>
+    </a>
+  </div>
+
+
+  <section class="infos">
+    <p class="infos-titre">Bon à savoir</p>
+    <div class="infos-grille">
+      <div class="info">
+        <div class="info-tete">
+          <span class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg></span>
+          <h3>Un avertissement s'affiche ?</h3>
+        </div>
+        <p>C'est normal : le notebook n'a pas été créé par toi. Clique sur <b>Exécuter quand même</b>.</p>
+        <div class="maquette" aria-hidden="true">
+          <div class="m-titre">Avertissement : ce notebook n'a pas été créé par Google</div>
+          <div class="m-texte">Vérifiez le code source avant de l'exécuter.</div>
+          <div class="m-boutons"><span class="m-btn">Annuler</span><span class="m-btn actif">Exécuter quand même</span></div>
+        </div>
+      </div>
+      <div class="info">
+        <div class="info-tete">
+          <span class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg></span>
+          <h3>Garder ton travail</h3>
+        </div>
+        <p>Le notebook partagé ne garde pas tes modifications. Enregistre ta propre copie dans ton Google Drive pour la retrouver plus tard :</p>
+        <div class="chemin"><span>Fichier</span><i>›</i><span class="cible">Enregistrer une copie dans Drive</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Build the pixel "3" (7 x 8 grid); lit dots fade in row by row.
+  (function () {
+    var bmp = [".#####.", "##...##", ".....##", "..####.", ".....##", ".....##", "##...##", ".#####."];
+    var g = document.getElementById("pixels"), ns = "http://www.w3.org/2000/svg";
+    bmp.forEach(function (row, y) {
+      row.split("").forEach(function (c, x) {
+        var d = document.createElementNS(ns, "circle");
+        d.setAttribute("cx", x * 14 + 7); d.setAttribute("cy", y * 14 + 7); d.setAttribute("r", 5);
+        if (c === "#") { d.setAttribute("class", "on"); d.style.animationDelay = (y * 0.07 + x * 0.02) + "s"; }
+        g.appendChild(d);
+      });
+    });
+  })();
+</script>
+</body>
+</html>
